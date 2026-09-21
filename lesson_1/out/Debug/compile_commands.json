@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/nikita/programming/C++/SystemProgramming/lesson_1/out/Debug",
+  "command": "/usr/bin/c++ -DWXUSINGDLL -D_FILE_OFFSET_BITS=64 -D__WXGTK3__ -D__WXGTK__ -isystem /usr/lib/wx/include/gtk3-unicode-3.2 -isystem /usr/include/wx-3.2 -g -std=gnu++23 -o CMakeFiles/MyWxApp.dir/main.cpp.o -c /home/nikita/programming/C++/SystemProgramming/lesson_1/main.cpp",
+  "file": "/home/nikita/programming/C++/SystemProgramming/lesson_1/main.cpp",
+  "output": "CMakeFiles/MyWxApp.dir/main.cpp.o"
+}
+]

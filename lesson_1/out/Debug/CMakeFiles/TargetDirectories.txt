@@ -1,0 +1,3 @@
+/home/nikita/programming/C++/SystemProgramming/lesson_1/out/Debug/CMakeFiles/MyWxApp.dir
+/home/nikita/programming/C++/SystemProgramming/lesson_1/out/Debug/CMakeFiles/edit_cache.dir
+/home/nikita/programming/C++/SystemProgramming/lesson_1/out/Debug/CMakeFiles/rebuild_cache.dir

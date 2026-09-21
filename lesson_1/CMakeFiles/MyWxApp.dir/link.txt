@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/MyWxApp.dir/link.d CMakeFiles/MyWxApp.dir/main.cpp.o -o MyWxApp  -lwx_gtk3u_core-3.2 -lwx_baseu-3.2
