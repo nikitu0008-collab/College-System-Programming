@@ -1,3 +1,5 @@
+p.s: This code was run on a Linux system; the time changes depending on the system.
+
 1.difference: 5.536 (a)s(s)econd
 2.difference: 5.101 (a)s(s)econd
 3.difference: 0.043238 (a)s(s)econd
