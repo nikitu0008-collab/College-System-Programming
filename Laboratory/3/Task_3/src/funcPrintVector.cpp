@@ -1,11 +1,11 @@
 #include "../include/funcPrintVector.hpp"
 
-#include <cstddef>
 #include <vector>
 #include <print>
 
-auto printVector(std::vector<short>& vectors) -> void {
+auto printVector(std::vector<short>& vectors) -> const std::vector<short>& {
     for(short& vector : vectors){
-        std::println("{} ",vector);
+        std::println("{} ",vectors);
     }
+    return vectors;
 }

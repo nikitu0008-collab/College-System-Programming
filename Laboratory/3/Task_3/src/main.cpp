@@ -2,6 +2,9 @@
 #include "../include/myInit.hpp"
 #include "../include/bubbleSort.hpp"
 #include "../include/timing.hpp"
+#include "../include/quicSort.hpp"
+#include "../include/separation.hpp"
+#include "../include/startSort.hpp"
 
 #include <stdexcept>
 #include <vector>
@@ -9,15 +12,15 @@
 
 auto main() -> int{
     std::vector<short> vectors(50000);
-    if(vectors.empty()){ 
-        throw std::invalid_argument("Error size vector");
+    if(vectors.empty()){
+        throw std::invalid_argument("Vector empty");
     }
     myInit(vectors);
-    std::vector<short>vect1 = vect, vect2 = vect;
-    printVector(vect);
-    funcTiming(funcSort, vectors, "\nBubble sort: ");
-    printVector(vect1);
-    funcTiming(funcQuicSort, vect2, "Quick Sort: ");
-    printVector(vect2);
+    std::vector<short>vect1 = vectors, vect2 = vectors;
+    //printVector(vect);
+    funcTiming(funcSort, vect1, "\nBubble sort: ");
+    //printVector(vect1);
+    funcTiming(quickSort, vect2, "\nQuick Sort: ");
+    //printVector(vect2);
     return EXIT_SUCCESS;
 }

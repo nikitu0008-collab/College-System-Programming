@@ -7,7 +7,8 @@ auto funcSeparation(std::vector<short>& vect, size_t start, size_t end) -> std::
     if(start < end){
         size_t pivot = funcQuicSort(vect, start, end);
         funcSeparation(vect, start, pivot);
-        funcSeparation(vect, pivot, + 1, finish);
+        funcSeparation(vect, pivot + 1, end);
         return vect;
     }
+    return vect;
 }

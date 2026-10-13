@@ -1,2 +1,8 @@
-Task_2: 104 second bubble sort
+Task_2: 
+104 second bubble sort
 
+(плюс а мы точно в боссе?)
+Task_3:
+Bubble sort: 106.14
+
+Quic sort: 0.11

@@ -7,5 +7,5 @@ auto funcTiming(std::vector<short>& (*myInit)(std::vector<short>&), std::vector<
     time_t start = clock(), finish = clock();
     myInit(vect);
     finish = clock();
-    std::println("{}: {} second", message, ((finish - start) / CLOCKS_PER_SEC));
+    std::println("{}: {} second", message, (static_cast<double>(finish - start) / CLOCKS_PER_SEC));
 }
