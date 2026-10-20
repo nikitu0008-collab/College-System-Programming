@@ -4,20 +4,25 @@
 #include <cstddef>
 
 auto myMerging(std::vector<short>& vect, size_t start, size_t finish) -> void{
-	std::vector<short>buffer;
-	size_t left_index = start, right_index = start + ((finish - start) / 2);
-	for (size_t i = 0; i < finish; i++) {
-		if (i < ((finish - start) / 2)) { buffer.push_back(vect.at(i)); }
-		if (!buffer.empty()) {
-			if (vect.at(right_index) <= buffer.at(0)) {
-				vect.at(i) = vect.at(right_index);
-				if (right_index < vect.size() - 1) { right_index++; }
-				else { vect.at(right_index) = buffer.back(); }
-			}
-			else {
-				vect.at(i) = buffer.front();
-				buffer.erase(buffer.begin());
-			}
-		}
-	}
+    if (finish - start < 2) {
+        return;
+    }
+
+    std::size_t mid = start + (finish - start) / 2;
+
+    std::vector<short> buffer(vect.begin() + start, vect.begin() + mid);
+
+    std::size_t left_idx = 0, right_idx = mid, write_idx = start;
+
+    while (left_idx < buffer.size() && right_idx < finish) {
+        if (buffer[left_idx] <= vect[right_idx]) {
+            vect.at(write_idx++) = buffer.at(left_idx++);
+        }
+        else {
+            vect.at(write_idx++) = vect.at(right_idx++);
+        }
+    }
+    while (left_idx < buffer.size()) {
+        vect.at(write_idx++) = buffer.at(left_idx++);
+    }
 }
