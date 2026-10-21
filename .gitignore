@@ -1,0 +1,28 @@
+# Сборка
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Собранные бинарники (в задачах собираются файлы без расшичения)
+main
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.exe
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Прочее
+*.log
+*.tmp
+.DS_Store
