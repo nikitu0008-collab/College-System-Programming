@@ -201,6 +201,3 @@ auto main() -> int {
 
     return EXIT_SUCCESS;
 }
-/*
-заменил thread на -> std::jthread, он сам вызывает .join() в деструкторе это из 26 стандарта.
-*/
