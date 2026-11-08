@@ -10,20 +10,14 @@
 #include <thread>
 
 auto main() -> int {
-    std::thread thread_1(printTC, "AA");
-    std::thread thread_2(printTC, "BB");
-
-    thread_1.join();
-    thread_2.join();
+    const std::jthread thread_1(printTC, "AA");
+    const std::jthread thread_2(printTC, "BB");
 
     std::vector<std::string> vect;
     std::mutex mtx;
 
-    std::thread t1(printToVector, std::ref(vect), "AA", std::ref(mtx));
-    std::thread t2(printToVector, std::ref(vect), "BB", std::ref(mtx));
-
-    t1.join();
-    t2.join();
+    const std::jthread t1(printToVector, std::ref(vect), "AA", std::ref(mtx));
+    const std::jthread t2(printToVector, std::ref(vect), "BB", std::ref(mtx));
 
     std::println("{}",vect);
 
