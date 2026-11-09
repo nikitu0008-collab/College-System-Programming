@@ -1,28 +1,23 @@
-/*
- * НОВЫЙ CPP ФАЙЛ
- * */
-
 #include "../include/printToVect.hpp"
 
-#include <cstdlib>
-#include <functional>
-#include <thread>
-#include <vector>
-#include <string>
-#include <mutex>
 #include <print>
+#include <cstdlib>
+#include <thread>
+#include <mutex>
+#include <string>
+#include <vector>
 
 auto main() -> int {
     std::vector<std::string> vect;
     std::mutex mtx;
 
-    std::thread thread_1(printToVector, std::ref(vect),"AA", std::ref(mtx));
-    std::thread thread_2(printToVector, std::ref(vect),"BB", std::ref(mtx));
+    // std::jthread вместо std::thread: join() вызывается в деструкторе.
+    const std::jthread thread_1(printToVector, std::ref(vect), "AA", std::ref(mtx));
+    const std::jthread thread_2(printToVector, std::ref(vect), "BB", std::ref(mtx));
 
-    thread_1.join();
-    thread_2.join();
-
-    std::println("{}",vect);
+    // Соединение сработает в деструкорах jthread при выходе из main,
+    // к этому моменту vect гарантированно заполнен.
+    std::println("{}", vect);
 
     return EXIT_SUCCESS;
 }
