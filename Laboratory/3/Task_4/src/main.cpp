@@ -7,22 +7,27 @@
 #include "../include/startSort.hpp"
 #include "../include/reconciliation.hpp"
 
+#include <print>
 #include <stdexcept>
 #include <vector>
 #include <cstdlib>
 
-auto main() -> int{
-    std::vector<short> vectors(50000);
-    if(vectors.empty()){
+auto main() -> int {
+    std::vector<short> vectors(50'000);
+    if (vectors.empty()) {
         throw std::invalid_argument("Vector empty");
     }
     myInit(vectors);
-    std::vector<short>vect1 = vectors, vect2 = vectors;
+    std::vector<short> vect1 = vectors, vect2 = vectors;
     //printVector(vect);
-    funcTiming(funcSort, vect1, "\nBubble sort: ");
+
+    // funcTiming теперь принимает std::function -- задание передаём лямбдой.
+    funcTiming([&vect1] { funcSort(vect1); }, "\nBubble sort: ");
     //printVector(vect1);
-    funcTiming(quickSort, vect2, "\nQuick Sort: ");
+    funcTiming([&vect2] { quickSort(vect2); }, "\nQuick Sort: ");
     //printVector(vect2);
+
     checkVectors(vect1, vect2);
+
     return EXIT_SUCCESS;
 }
