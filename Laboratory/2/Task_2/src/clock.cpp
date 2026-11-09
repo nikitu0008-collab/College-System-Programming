@@ -1,15 +1,21 @@
 #include "../include/clock.hpp"
 
-#include <cstdint>
 #include <print>
-#include <iostream>
+#include <cstdint>
+#include <ranges>
 #include <vector>
 
-auto Printclock(std::vector<int16_t>& clock_vector) -> void{
-    for (auto& i : clock_vector) {
-        std::println("{} ",clock_vector);
+auto printClock(const std::vector<int16_t>& clock_vector) -> void {
+    if (clock_vector.empty()) {
+        std::print(std::cerr, "Vector empty\n");
+        return;
     }
-    if(clock_vector.empty()){
-        std::cerr << "Vector empty" << '\n';
+
+    // Печатаем только первые 10 элементов, чтобы не засорять консоль.
+    for (const int16_t element : clock_vector | std::views::take(10)) {
+        std::print("{} ", element);
     }
+    std::println("");
+
+    std::println("Vector filled");
 }

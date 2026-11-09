@@ -1,43 +1,42 @@
 #include <functional>
 #include <print>
-#include <iostream>
+#include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <thread>
-#include <cstdint>
 #include <vector>
-#include <ctime>
 
 #include "../include/clock.hpp"
 #include "../include/time_t.hpp"
 #include "../include/myInit.hpp"
 
 auto main() -> int {
-    std::vector<int16_t> vectors(100000);
+    std::vector<int16_t> vectors(100'000);
 
     if (vectors.empty()) {
-        std::cerr << "Vector empty" << '\n';
+        std::print(std::cerr, "Vector empty\n");
         return EXIT_FAILURE;
     }
 
-    srand(static_cast<unsigned int>(time(nullptr)));
+    const std::size_t mid_size_vector = vectors.size() / 2;
 
-    const size_t mid_size_vector = vectors.size() / 2;
+    const auto start_time = std::chrono::steady_clock::now();
 
-    const clock_t start_time = clock();
+    // Два потока, каждый заполняет свою половину вектора.
+    // std::jthread сам делает join() в деструкторе -- поток не может остаться "брошенным".
+    std::jthread thread_1(myInit, std::ref(vectors), 0, mid_size_vector);
+    std::jthread thread_2(myInit, std::ref(vectors), mid_size_vector, vectors.size());
 
-    //two streams, and each fills its own half
-    std::thread thread_1(myInit, std::ref(vectors), 0, mid_size_vector);
-    std::thread thread_2(myInit, std::ref(vectors), mid_size_vector, vectors.size());
-
-    //waiting completed streams
+    // Явный join() оставлен, чтобы замер шёл после реального завершения потоков.
     thread_1.join();
     thread_2.join();
 
-    const clock_t end_time = clock();
+    const auto end_time = std::chrono::steady_clock::now();
 
-    const double elapsed_time = static_cast<double>(end_time - start_time) / CLOCKS_PER_SEC;
+    // Замер через std::chrono::steady_clock вместо C-стиля clock()/CLOCKS_PER_SEC.
+    const double elapsed_time = std::chrono::duration<double>(end_time - start_time).count();
 
-    std::println("Parallel init in 2 threads: {} second", elapsed_time);
+    std::println("Parallel init in 2 threads: {:.6f} seconds", elapsed_time);
 
     return EXIT_SUCCESS;
 }

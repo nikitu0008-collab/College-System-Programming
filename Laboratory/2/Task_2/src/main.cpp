@@ -1,36 +1,35 @@
-#include <cstdlib>
+#include <chrono>
 #include <cstdint>
-#include <vector>
-#include <ctime>
+#include <cstdlib>
 #include <print>
+#include <vector>
 
 #include "../include/clock.hpp"
 #include "../include/time_t.hpp"
 #include "../include/myInit.hpp"
 
 auto main() -> int {
-    std::vector<int16_t> vectors(100000);
-
-    srand(static_cast<unsigned int>(time(0))); //Обьявление srand.
+    std::vector<int16_t> vectors(100'000);
 
     std::println("Print difference");
-    
-    const time_t start_time = clock();
 
-    myInitFunc(vectors, 0, vectors.size()); //Заполнение
- 
-    const time_t end_time = clock();
+    const auto start_time = std::chrono::steady_clock::now();
 
-    double elapsed_time = static_cast<double>(end_time - start_time) / 1000.0;
+    myInitFunc(vectors, 0, vectors.size()); // Заполнение.
 
-    std::println("difference: {}",elapsed_time);
+    // Замер через std::chrono::steady_clock вместо C-стиля clock()/CLOCKS_PER_SEC.
+    const double elapsed_time =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - start_time).count();
 
-    vectors.resize(1000000000); //Увеличили размер.
+    std::println("difference: {}", elapsed_time);
 
-    elapsed_time = static_cast<double>(clock() - start_time) / 1000.0;
+    vectors.resize(1'000'000'000); // Увеличили размер.
 
-    std::println("New difference: {}",elapsed_time);
+    const double new_elapsed_time =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - start_time).count();
 
+    std::println("New difference: {}", new_elapsed_time);
+
+    // thread.join() -- ждём пока завершится поток
     return EXIT_SUCCESS;
-}   
-//thread.join() -- ждём пока завершится поток
+}
