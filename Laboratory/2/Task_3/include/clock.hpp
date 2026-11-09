@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
-auto Printclock(std::vector<int16_t>& clock_vector) -> void;
+auto printClock(const std::vector<int16_t>& clock_vector) -> void;

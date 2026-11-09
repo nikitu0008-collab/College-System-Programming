@@ -1,38 +1,46 @@
 #include <print>
-#include <iostream>
-#include <cstdlib>
-#include <vector>
-#include <ctime>
+#include <chrono>
 #include <cstdint>
+#include <cstdlib>
+#include <random>
+#include <vector>
 
 #include "../include/clock.hpp"
 #include "../include/time_t.hpp"
 
+// Современная замена C-стилю time()/srand()/rand(): ГПСЧ из <random>.
+// thread_local -- у каждого потока свой генератор, одной загрузкой от std::random_device.
+static thread_local std::mt19937 rng{std::random_device{}()};
+
 auto main() -> int {
-    std::vector<int16_t> vectors(100000);
-    time_t start_time = clock();
+    std::vector<int16_t> vectors(100'000);
 
-    srand(static_cast<unsigned int>(time(0))); //Обьявление srand.
+    const auto start_time = std::chrono::steady_clock::now(); // Точка старта замера.
 
-    for(size_t i = 0 ; i < vectors.size() ; i++){
-        vectors.at(i) = std::rand() % 1000; //Заполнение.
+    const std::uniform_int_distribution<int> dist(0, 999);
+
+    for (int16_t& element : vectors) {
+        element = static_cast<int16_t>(dist(rng)); // Заполнение.
     }
 
-    if(vectors.empty()){
-        std::cerr << "Vector empty" << '\n';
+    if (vectors.empty()) {
+        std::print(std::cerr, "Vector empty\n");
     }
 
     std::println("Print difference: ");
 
-    double elapsed_time = static_cast<double>(std::clock() - start_time) / 1000;
+    // Монохронные часы C-стиля (clock()/CLOCKS_PER_SEC) заменены на std::chrono::steady_clock.
+    const double elapsed_time =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - start_time).count();
 
-    std::println("difference: {}",elapsed_time);
+    std::println("difference: {}", elapsed_time);
 
-    vectors.resize(1000000000); //Увеличили размер.
+    vectors.resize(1'000'000'000); // Увеличили размер.
 
-    elapsed_time = static_cast<double>(std::clock() - start_time) / 1000;
+    const double new_elapsed_time =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - start_time).count();
 
-    std::println("New difference: {}",elapsed_time);
+    std::println("New difference: {}", new_elapsed_time);
 
     return EXIT_SUCCESS;
-}   
+}
