@@ -23,7 +23,11 @@ auto main() -> int {
     t1.join();
     t2.join();
 
-    std::println("{}", vect);
+    // Диапазонное форматирование vector через std::println пока тянется не всеми
+    // компиляторами (GCC 15+), поэтому печатаем элементы честным циклом.
+    for (const std::string& line : vect) {
+        std::println("{}", line);
+    }
 
     return EXIT_SUCCESS;
 }
