@@ -1,5 +1,8 @@
 #pragma once
-#include "../include/myInit.hpp"
-#include <vector>
+
+#include <functional>
 #include <string>
-auto funcTiming(std::vector<short>&(*myInit)(std::vector<short>&), std::vector<short>& vect, std::string message) -> void;
+
+// Замеряет время выполнения task и печатает результат в консоль.
+// Было: C-стиль указателя на функцию + <ctime>. Стало: std::function<void()>.
+auto funcTiming(const std::function<void()>& task, std::string message) -> void;
