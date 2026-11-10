@@ -1,5 +1,7 @@
 # Сборка
 build/
+out/
+out/*/
 cmake-build-*/
 CMakeFiles/
 CMakeCache.txt
