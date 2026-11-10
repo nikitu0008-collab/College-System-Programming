@@ -1,0 +1,64 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # GCC 14 -- первая версия libstdc++ с полной поддержкой <print>/<format>
+      # для C++23; wxWidgets нужна для сборки lesson_1.
+      - name: Install GCC 14 and wxWidgets
+        run: sudo apt-get update && sudo apt-get install -y g++-14 libwxgtk3.2-dev
+
+      # Находим все каталоги с CMakeLists.txt (лобы 2-5 + lesson_1)
+      - name: Discover tasks
+        id: tasks
+        run: |
+          dirs=$(find Laboratory lesson_1 -name CMakeLists.txt -not -path '*/build/*' -printf '%h\n' | sort -u | tr '\n' ' ')
+          echo "dirs=$dirs" >> "$GITHUB_OUTPUT"
+          echo "discovered: $dirs"
+
+      # Собираем и запускаем каждую задачу как отдельный проект
+      - name: Build
+        run: |
+          set -e
+          for dir in ${{ steps.tasks.outputs.dirs }}; do
+            echo "=== Configuring $dir ==="
+            cmake -S "$dir" -B "build/$dir" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-14
+            echo "=== Building $dir ==="
+            cmake --build "build/$dir" --parallel
+          done
+
+      # Лаба 5 читает file0.txt..file3.txt ("ИМЯ ЗНАЧЕНИЕ МОДИФИКАТОР") --
+      # генерируем тестовые данные, чтобы задание можно было реально запустить.
+      - name: Generate lab 5 input files
+        run: |
+          for i in 0 1 2 3; do
+            for j in $(seq 1 200); do
+              echo "item$j $((RANDOM % 1000)) mod$((RANDOM % 3))" >> "file$i.txt"
+            done
+          done
+
+      - name: Run tasks
+        run: |
+          set -e
+          for dir in ${{ steps.tasks.outputs.dirs }}; do
+            # lesson_1 -- GUI-приложение: только сборка, без запуска (нужен дисплей)
+            if [ "$dir" = "lesson_1" ]; then
+              echo "=== lesson_1: build-only, skipping run ==="
+              continue
+            fi
+            exe=$(find "build/$dir" -maxdepth 1 -type f -executable ! -name '*.so' ! -name 'cmake*' | head -n 1)
+            echo "=== Running $dir: $exe ==="
+            timeout 120 "$exe" < /dev/null || { echo "::error::Task failed: $dir"; exit 1; }
+          done
+
+      # remarks:
+      # - lesson_1 собирается, но не запускается (GUI требует дисплей);
+      # - задаче лабы 2 (вектор на 1e9 элементов int16_t) нужно ~2 ГБ ОЗУ -- в лимитах раннера.
