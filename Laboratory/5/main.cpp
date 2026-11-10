@@ -8,24 +8,26 @@
  *
  * */
 
+#include <charconv>
+#include <chrono>
+#include <cstdlib>
 #include <expected>
+#include <filesystem>
+#include <format>
+#include <fstream>
 #include <functional>
 #include <iostream>
-#include <fstream>
+#include <print>
 #include <stdexcept>
 #include <string>
-#include <vector>
 #include <thread>
-#include <ctime>
-#include <print>
-#include <cstdlib>
-#include <filesystem>
+#include <vector>
 
 // Читает один файл построчно и складывает строки в буфер (buffer -- для своего потока свой, поэтому без мьютексов)
-static auto read_file(const std::string& filename, std::vector<std::string>& buffer) -> std::expected<std::vector<std::string>, std::string>{
+static auto read_file(const std::string& filename, std::vector<std::string>& buffer) -> std::expected<std::vector<std::string>, std::string> {
     std::ifstream in(filename);
     if (!in.is_open()) {
-        return std::unexpected("Error opening: {}" + filename);
+        return std::unexpected(std::format("Error opening file: {}", filename));
     }
 
     std::string line;
@@ -36,17 +38,19 @@ static auto read_file(const std::string& filename, std::vector<std::string>& buf
 }
 
 // Достаёт ЗНАЧЕНИЕ из строки в формате "ИМЯ ЗНАЧЕНИЕ МОДИФИКАТОР".
-// istringstream на больших файлах непозволительно медленный (каждая строка -- новый потоковый объект),
-// поэтому парсим руками: пропускаем имя, а число забираем через strtod.
+// strtod из C-стиля заменён на std::from_chars: без локали и без лишних выделений памяти, быстрее.
 // Если строка кривая (значения нет) -- вернём через ok значение false.
 static auto parse_value(const std::string& line, bool& ok) -> double {
     const char* p = line.c_str();
 
     while (*p == ' ' || *p == '\t') { // пропускаем пробелы в начале
-        p++;
+        ++p;
     }
     while (*p != ' ' && *p != '\t' && *p != '\0') { // пропускаем имя
-        p++;
+        ++p;
+    }
+    while (*p == ' ' || *p == '\t') { // пропускаем пробелы перед значением
+        ++p;
     }
 
     if (*p == '\0') { // значения в строке нет
@@ -54,10 +58,17 @@ static auto parse_value(const std::string& line, bool& ok) -> double {
         return 0.0;
     }
 
-    char* end = nullptr;
-    const double value = strtod(p, &end);
-    ok = (end != p);
+    double value = 0.0;
+    const auto [ptr, ec] = std::from_chars(p, line.c_str() + line.size(), value);
+    ok = (ec == std::errc{} && ptr != p);
     return value;
+}
+
+// Кроссплатформенная замена system("pause"): ждёт Enter, работает и на Windows, и на Linux.
+static auto pause_console() -> void {
+    std::println("Press ENTER to continue...");
+    std::string dummy;
+    std::getline(std::cin, dummy);
 }
 
 auto main() -> int {
@@ -66,14 +77,14 @@ auto main() -> int {
     /* ПРОВЕРКА ВХОДНЫХ ФАЙЛОВ ПЕРЕД СТАРТОМ */
     for (const std::string& file : files) {
         if (!std::filesystem::exists(file)) {
-            std::cerr << "Критическая ошибка: Входной файл " << file << " не найден на диске!\n";
-            std::system("pause");
+            std::println(std::cerr, "Критическая ошибка: Входной файл {} не найден на диске!", file);
+            pause_console();
             return EXIT_FAILURE; // Завершаем программу, так как читать нечего
         }
     }
 
     /* START TASK - 1 */
-    const time_t start1 = clock();
+    const auto start1 = std::chrono::steady_clock::now();
 
     // Каждому потоку -- свой буфер, чтобы они не дрались за один вектор
     std::vector<std::vector<std::string>> buffers(files.size());
@@ -85,7 +96,7 @@ auto main() -> int {
         index++;
     }
 
-    threads.clear();
+    threads.clear(); // деструкторы jthread дожидаются завершения каждого потока
 
     std::ofstream out("output.txt");
     if (!out.is_open()) {
@@ -101,23 +112,23 @@ auto main() -> int {
 
     const std::filesystem::path my_path = "output.txt";
 
-    //Проверяет есть ли файл вообще на диске
-    if(!std::filesystem::exists(my_path)){
-        std::cerr << "Error: File " << my_path << "Not Found this Disk" << '\n';
+    // Проверяет есть ли файл вообще на диске
+    if (!std::filesystem::exists(my_path)) {
+        std::println(std::cerr, "Error: File {} not found on this disk", my_path);
     }
 
-    const time_t end1 = clock();
-    const double t1 = static_cast<double>(end1 - start1) / CLOCKS_PER_SEC;
+    // Замеры через std::chrono::steady_clock вместо C-стиля clock()/CLOCKS_PER_SEC
+    const double t1 = std::chrono::duration<double>(std::chrono::steady_clock::now() - start1).count();
     std::println("output file time: {} s", t1);
 
-    system("pause"); // Пауза после первого задания, как требует ТЗ
+    pause_console(); // Пауза после первого задания, как требует ТЗ
 
     /* START TASK - 2 */
     std::string name_object;
     std::print("Enter name object: ");
     std::getline(std::cin, name_object);
 
-    const time_t start2 = clock(); // Замер начинаем сразу после ввода имени
+    const auto start2 = std::chrono::steady_clock::now(); // Замер начинаем сразу после ввода имени
 
     std::ofstream name_file("name.txt");
     if (!name_file.is_open()) {
@@ -126,7 +137,7 @@ auto main() -> int {
 
     /* Ищем точное совпадение имени (первое слово в строке).
     Без istringstream -- на больших файлах потоки на строку жрут вечность.
-    Просто смотрим: начинается ли строка с имени, а следом идёт разделитель. 
+    Просто смотрим: начинается ли строка с имени, а следом идёт разделитель.
     */
     const std::string name_sep_space = name_object + " ";
     const std::string name_sep_tab = name_object + "\t";
@@ -147,18 +158,17 @@ auto main() -> int {
     // Если имени в данных нет -- показываем пример реального имени (первое из file0).
     // Имена в данных генерируются случайно, по памяти такое не угадать.
     if (found == 0) {
-        const std::string example_line = buffers.at(0).empty() ? std::string() : buffers.at(0).at(0);
+        const std::string example_line = !buffers.at(0).empty() ? buffers.at(0).at(0) : std::string();
         const std::size_t sep = example_line.find(' ');
         const std::string example = (sep != std::string::npos) ? example_line.substr(0, sep) : "?";
         std::println("Object '{}' not found in data. Try, for example: {}", name_object, example);
     }
 
-    const time_t end2 = clock();
-    const double t2 = static_cast<double>(end2 - start2) / CLOCKS_PER_SEC;
+    const double t2 = std::chrono::duration<double>(std::chrono::steady_clock::now() - start2).count();
     std::println("name.txt time: {} s", t2);
 
     /* START TASK - 3 */
-    const time_t start3 = clock();
+    const auto start3 = std::chrono::steady_clock::now();
 
     double sum = 0.0;
     std::size_t count = 0;
@@ -195,8 +205,7 @@ auto main() -> int {
 
     more_file.close();
 
-    const time_t end3 = clock();
-    const double t3 = static_cast<double>(end3 - start3) / CLOCKS_PER_SEC;
+    const double t3 = std::chrono::duration<double>(std::chrono::steady_clock::now() - start3).count();
     std::println("more_than_avg.txt time: {} s", t3);
 
     return EXIT_SUCCESS;
